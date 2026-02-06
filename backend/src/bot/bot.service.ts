@@ -22,6 +22,29 @@ export class BotService implements OnModuleInit {
 
     onModuleInit() {
         this.logger.log('BotService initialized');
+        // Try to set default bot commands on startup
+        this.setDefaultCommands().catch((err) => {
+            this.logger.error('Failed to set bot commands', err);
+        });
+    }
+
+    private async setDefaultCommands(): Promise<void> {
+        if (!this.currentBot) {
+            this.logger.warn('Bot instance not initialized, skipping setMyCommands');
+            return;
+        }
+
+        try {
+            await this.currentBot.telegram.setMyCommands([
+                {
+                    command: 'start',
+                    description: 'Start registration in Casting Bot',
+                },
+            ]);
+            this.logger.log('Bot commands registered with Telegram');
+        } catch (error) {
+            this.logger.error('Error registering bot commands', error);
+        }
     }
 
     /**

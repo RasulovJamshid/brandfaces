@@ -59,7 +59,10 @@ export class RegistrationScene {
     async onName(@Ctx() ctx: RegistrationContext, @Message() msg: any) {
         const lang = this.getLang(ctx);
         const name = msg.text;
-        if (!name || name.length < 2) return ctx.reply(t(lang, 'nameShort'));
+        if (!name || name.length < 2) {
+            await ctx.reply(t(lang, 'nameShort'));
+            return;
+        }
         ctx.scene.session.userData.fullName = name;
         await ctx.reply(t(lang, 'askAge'));
         ctx.wizard.next();
@@ -178,7 +181,8 @@ export class RegistrationScene {
             if (doneButtons.includes(text)) {
                 console.log('Done button pressed, photos count:', photos.length);
                 if (photos.length < 2) {
-                    return ctx.reply(t(lang, 'photosMin', { count: photos.length }));
+                    await ctx.reply(t(lang, 'photosMin', { count: photos.length }));
+                    return;
                 }
                 console.log('Moving to next step (phone)');
                 await ctx.reply(t(lang, 'photosSaved'), Markup.keyboard([
@@ -201,7 +205,8 @@ export class RegistrationScene {
 
         if (msg.photo) {
             if (photos.length >= 5) {
-                return ctx.reply(t(lang, 'photosMax'));
+                await ctx.reply(t(lang, 'photosMax'));
+                return;
             }
 
             try {
@@ -235,7 +240,8 @@ export class RegistrationScene {
         } else if ('text' in msg) {
             phone = msg.text;
         } else {
-            return ctx.reply(t(lang, 'providePhone'));
+            await ctx.reply(t(lang, 'providePhone'));
+            return;
         }
         ctx.scene.session.userData.phone = phone;
         await ctx.reply(t(lang, 'askPrice'), Markup.removeKeyboard());
@@ -247,9 +253,15 @@ export class RegistrationScene {
     async onPrice(@Ctx() ctx: RegistrationContext, @Message() msg: any) {
         const lang = this.getLang(ctx);
         const price = parseFloat(msg.text);
-        if (isNaN(price)) return ctx.reply(t(lang, 'priceInvalid'));
+        if (isNaN(price)) {
+            await ctx.reply(t(lang, 'priceInvalid'));
+            return;
+        }
         ctx.scene.session.userData.price = price;
-        await ctx.reply(t(lang, 'askSocials'));
+        await ctx.reply(
+            t(lang, 'askSocials'),
+            Markup.keyboard([[t(lang, 'skip')]]).oneTime().resize(),
+        );
         ctx.wizard.next();
     }
 
@@ -257,7 +269,14 @@ export class RegistrationScene {
     @On('text')
     async onSocials(@Ctx() ctx: RegistrationContext, @Message() msg: any) {
         const lang = this.getLang(ctx);
-        ctx.scene.session.userData.socials = msg.text;
+        const text = (msg.text || '').trim();
+
+        // If user presses Skip/Next button, treat as no socials
+        if (text === t(lang, 'skip')) {
+            ctx.scene.session.userData.socials = undefined;
+        } else {
+            ctx.scene.session.userData.socials = text;
+        }
 
         // Summary
         const d = ctx.scene.session.userData;

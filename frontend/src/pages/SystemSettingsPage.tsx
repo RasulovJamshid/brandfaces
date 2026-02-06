@@ -1,12 +1,11 @@
 import { useState } from 'react';
 import { useMutation } from '@tanstack/react-query';
 import {
-    Container, Box, Typography, Button, TextField,
+    Container, Box, Typography, Button,
     Alert, Card, CardContent, Paper,
     IconButton, Tooltip, Chip, Stack, Grid, alpha,
 } from '@mui/material';
 import RefreshIcon from '@mui/icons-material/Refresh';
-import KeyIcon from '@mui/icons-material/Key';
 import DeleteSweepIcon from '@mui/icons-material/DeleteSweep';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import ContentCopyIcon from '@mui/icons-material/ContentCopy';
@@ -16,18 +15,10 @@ import AppBar from '../components/AppBar';
 
 export default function SystemSettingsPage() {
     const { t } = useTranslation();
-    const [botToken, setBotToken] = useState('');
     const [copied, setCopied] = useState(false);
 
     const resetPendingMutation = useMutation({
         mutationFn: () => api.post('/bot/reset-pending-updates'),
-    });
-
-    const updateTokenMutation = useMutation({
-        mutationFn: () => api.post('/bot/update-token', { token: botToken }),
-        onSuccess: () => {
-            setBotToken('');
-        },
     });
 
     const handleCopy = (text: string) => {
@@ -50,65 +41,6 @@ export default function SystemSettingsPage() {
                 </Box>
 
                 <Grid container spacing={3} alignItems="stretch">
-                    {/* Bot Token Settings */}
-                    <Grid size={{ xs: 12, md: 6 }}>
-                        <Card elevation={0} sx={{ height: '100%', display: 'flex', flexDirection: 'column', border: '1px solid', borderColor: 'divider' }}>
-                            <CardContent sx={{ flexGrow: 1, display: 'flex', flexDirection: 'column' }}>
-                                <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 3 }}>
-                                    <Box sx={{
-                                        p: 1.5,
-                                        borderRadius: 2,
-                                        bgcolor: (theme) => alpha(theme.palette.warning.main, 0.1),
-                                        display: 'flex',
-                                        alignItems: 'center',
-                                        justifyContent: 'center'
-                                    }}>
-                                        <KeyIcon sx={{ fontSize: 28, color: 'warning.main' }} />
-                                    </Box>
-                                    <Box>
-                                        <Typography variant="h6" sx={{ fontWeight: 700 }}>
-                                            {t('systemSettings.botTokenTitle', 'Bot Token')}
-                                        </Typography>
-                                        <Typography variant="body2" color="text.secondary">
-                                            {t('systemSettings.botTokenSubtitle', 'Update Telegram bot token')}
-                                        </Typography>
-                                    </Box>
-                                </Box>
-
-                                <Alert severity="info" sx={{ mb: 3, borderRadius: 2 }} icon={false}>
-                                    <Typography variant="body2" sx={{ fontWeight: 500 }}>
-                                        {t('systemSettings.tokenInfo', 'The bot will be reinitialized with the new token automatically')}
-                                    </Typography>
-                                </Alert>
-
-                                <Box sx={{ flexGrow: 1 }}>
-                                    <TextField
-                                        fullWidth
-                                        label={t('systemSettings.newToken', 'New Bot Token')}
-                                        value={botToken}
-                                        onChange={(e) => setBotToken(e.target.value)}
-                                        placeholder="1234567890:ABCdefGHIjklMNOpqrsTUVwxyz"
-                                        size="medium"
-                                        type="password"
-                                        sx={{ mb: 1 }}
-                                        helperText={t('systemSettings.tokenHelp', 'Get from @BotFather on Telegram')}
-                                        InputProps={{ sx: { borderRadius: 2 } }}
-                                    />
-                                </Box>
-
-                                <Button
-                                    variant="contained"
-                                    color="warning"
-                                    onClick={() => updateTokenMutation.mutate()}
-                                    disabled={!botToken || updateTokenMutation.isPending}
-                                    fullWidth
-                                    sx={{ mt: 3, py: 1.2, fontWeight: 700 }}
-                                >
-                                    {t('systemSettings.updateToken', 'Update Token')}
-                                </Button>
-                            </CardContent>
-                        </Card>
-                    </Grid>
 
                     {/* Reset Pending Updates */}
                     <Grid size={{ xs: 12, md: 6 }}>
