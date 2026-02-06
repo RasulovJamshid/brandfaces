@@ -42,7 +42,7 @@ export class RegistrationScene {
         // Get language from parent session (set in bot.update.ts)
         const parentSession = (ctx as any).session;
         const lang = parentSession?.language || 'en';
-        
+
         ctx.scene.session.language = lang;
         ctx.scene.session.userData = { photos: [] };
         const user = ctx.from;
@@ -95,7 +95,7 @@ export class RegistrationScene {
             return;
         }
         ctx.scene.session.userData.gender = gender;
-        
+
         // Fetch cities and show selection
         const cities = await this.citiesService.findAll();
         const cityButtons = cities.slice(0, 20).map(city => [
@@ -104,7 +104,7 @@ export class RegistrationScene {
                 `city_${city.id}`
             )
         ]);
-        
+
         await ctx.reply(
             t(lang, 'askCity'),
             Markup.inlineKeyboard(cityButtons)
@@ -116,19 +116,19 @@ export class RegistrationScene {
     async onCitySelect(@Ctx() ctx: any) {
         const match = ctx.match;
         if (!match) return;
-        
+
         const cityId = parseInt(match[1]);
         const city = await this.citiesService.findOne(cityId);
-        
+
         if (!city) {
             const lang = this.getLang(ctx as any);
             await ctx.reply(t(lang, 'cityNotFound'));
             return;
         }
-        
+
         ctx.scene.session.userData.cityId = cityId;
         ctx.scene.session.userData.city = city.name;  // Keep for display
-        
+
         const lang = this.getLang(ctx as any);
         await ctx.answerCbQuery();
         await ctx.reply(
@@ -146,20 +146,20 @@ export class RegistrationScene {
     }
 
     @WizardStep(4)
-    @On(['photo', 'text'])
+    @On(['photo', 'text', 'document'])
     async onPhoto(@Ctx() ctx: RegistrationContext, @Message() msg: any) {
         const lang = this.getLang(ctx);
-        const photos = ctx.scene.session.userData.photos ?? []; // Ensure array
+        const photos = ctx.scene.session.userData.photos ?? [];
         ctx.scene.session.userData.photos = photos;
 
-        console.log('Photo step - message has text:', msg.text, 'has photo:', !!msg.photo);
+        console.log('Photo step - message type:', msg.photo ? 'photo' : msg.document ? 'document' : 'text');
 
         // Check for "Done" in all languages - MUST BE FIRST
         if (msg.text) {
             const doneButtons = ['Done', 'Готово', 'Tayyor'];
-            console.log('Received text:', msg.text, 'Checking against:', doneButtons);
-            
-            if (doneButtons.includes(msg.text)) {
+            const text = msg.text.trim();
+
+            if (doneButtons.includes(text)) {
                 console.log('Done button pressed, photos count:', photos.length);
                 if (photos.length < 2) {
                     return ctx.reply(t(lang, 'photosMin', { count: photos.length }));
@@ -172,26 +172,40 @@ export class RegistrationScene {
                 return;
             } else {
                 // User sent text but not "Done"
-                console.log('Text received but not Done button:', msg.text);
+                console.log('Text received but not Done button:', text);
                 await ctx.reply(t(lang, 'sendPhotoOrDone'));
                 return;
             }
+        }
+
+        if (msg.document) {
+            await ctx.reply(t(lang, 'sendPhotoOrDone') + ' (Please send as "Photo" with compression, not "File")');
+            return;
         }
 
         if (msg.photo) {
             if (photos.length >= 5) {
                 return ctx.reply(t(lang, 'photosMax'));
             }
-            const telegramPhotos = msg.photo;
-            const largestPhoto = telegramPhotos[telegramPhotos.length - 1];
-            const fileId = largestPhoto.file_id;
-            const fileUrl = await ctx.telegram.getFileLink(fileId);
 
-            const savedFilename = await this.filesService.downloadFile(fileUrl.href);
-            photos.push(savedFilename);
-            ctx.scene.session.userData.photos = photos;
+            try {
+                const telegramPhotos = msg.photo;
+                const largestPhoto = telegramPhotos[telegramPhotos.length - 1];
+                const fileId = largestPhoto.file_id;
+                const fileUrl = await ctx.telegram.getFileLink(fileId);
 
-            await ctx.reply(t(lang, 'photoReceived', { count: photos.length }));
+                const savedFilename = await this.filesService.downloadFile(fileUrl.href);
+
+                // Re-read photos in case of concurrent updates (basic mitigation)
+                const currentPhotos = ctx.scene.session.userData.photos ?? [];
+                currentPhotos.push(savedFilename);
+                ctx.scene.session.userData.photos = currentPhotos;
+
+                await ctx.reply(t(lang, 'photoReceived', { count: currentPhotos.length }));
+            } catch (error) {
+                console.error('Error saving photo:', error);
+                await ctx.reply(t(lang, 'errorSaving') + ' (Try again)');
+            }
         }
     }
 
@@ -259,7 +273,7 @@ export class RegistrationScene {
         const lang = this.getLang(ctx);
         const restartButtons = ['Restart', 'Начать заново', 'Qaytadan boshlash'];
         const confirmButtons = ['Confirm', 'Подтвердить', 'Tasdiqlash'];
-        
+
         if (restartButtons.includes(msg)) {
             await ctx.scene.reenter();
             return;
@@ -285,7 +299,7 @@ export class RegistrationScene {
                     socialLinks: d.socials,
                     status: UserStatus.ACTIVE,
                 };
-                
+
                 // Use cityId if available, otherwise fallback to city string
                 if (d.cityId) {
                     userData.cityId = d.cityId;
@@ -293,7 +307,7 @@ export class RegistrationScene {
                 } else {
                     userData.city = d.city;
                 }
-                
+
                 const user = await this.usersService.createOrUpdate(userData);
 
                 // Save photos
