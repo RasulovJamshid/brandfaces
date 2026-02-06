@@ -31,9 +31,16 @@ export class BotService implements OnModuleInit {
         try {
             this.logger.log('Updating bot token...');
             
-            // Stop current bot
-            await this.currentBot.stop();
-            this.logger.log('Current bot stopped');
+            // Stop current bot if it exists and is running
+            if (this.currentBot) {
+                try {
+                    await this.currentBot.stop();
+                    this.logger.log('Current bot stopped');
+                } catch (stopError) {
+                    // Bot might not be running, that's okay
+                    this.logger.log('Current bot was not running');
+                }
+            }
 
             // Create new bot instance with new token
             const newBot = new Telegraf(newToken);
@@ -44,10 +51,6 @@ export class BotService implements OnModuleInit {
 
             // Replace current bot
             this.currentBot = newBot;
-            
-            // Start new bot (if it was running in polling mode)
-            // Note: If using webhook, you'll need to set it again
-            // await newBot.launch();
 
             this.logger.log('Bot token updated successfully');
             
