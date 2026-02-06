@@ -92,6 +92,39 @@ export class UsersService {
         });
     }
 
+    async deletePhoto(userId: number, photoId: number) {
+        // Find the photo and ensure it belongs to the user
+        const photo = await this.prisma.photo.findUnique({
+            where: { id: photoId },
+        });
+
+        if (!photo || photo.userId !== userId) {
+            throw new Error('Photo not found for this user');
+        }
+
+        const wasMain = photo.isMain;
+
+        await this.prisma.photo.delete({
+            where: { id: photoId },
+        });
+
+        // If it was the main photo, promote another one (if exists)
+        if (wasMain) {
+            const nextPhoto = await this.prisma.photo.findFirst({
+                where: { userId },
+            });
+
+            if (nextPhoto) {
+                await this.prisma.photo.update({
+                    where: { id: nextPhoto.id },
+                    data: { isMain: true },
+                });
+            }
+        }
+
+        return true;
+    }
+
     async count(where?: Prisma.UserWhereInput) {
         return this.prisma.user.count({ where });
     }

@@ -19,6 +19,12 @@ interface City {
     region?: string;
 }
 
+interface ExistingPhoto {
+	id: number;
+	filePath: string;
+	isMain: boolean;
+}
+
 interface AddEditActorDialogProps {
     open: boolean;
     onClose: () => void;
@@ -31,6 +37,7 @@ export default function AddEditActorDialog({ open, onClose, onSuccess, actor }: 
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
     const [photos, setPhotos] = useState<File[]>([]);
+    const [existingPhotos, setExistingPhotos] = useState<ExistingPhoto[]>([]);
     const [cities, setCities] = useState<City[]>([]);
     const [selectedCity, setSelectedCity] = useState<City | null>(null);
     const [formData, setFormData] = useState({
@@ -79,6 +86,8 @@ export default function AddEditActorDialog({ open, onClose, onSuccess, actor }: 
                 const city = cities.find(c => c.id === actor.cityId);
                 if (city) setSelectedCity(city);
             }
+            // Existing photos for edit mode
+            setExistingPhotos(actor.photos || []);
         } else {
             setFormData({
                 fullName: '',
@@ -93,6 +102,7 @@ export default function AddEditActorDialog({ open, onClose, onSuccess, actor }: 
             });
             setSelectedCity(null);
             setPhotos([]);
+            setExistingPhotos([]);
         }
         setError('');
     }, [actor, open, cities.length]);
@@ -117,6 +127,20 @@ export default function AddEditActorDialog({ open, onClose, onSuccess, actor }: 
 
     const handleRemovePhoto = (index: number) => {
         setPhotos(photos.filter((_, i) => i !== index));
+    };
+
+    const handleDeleteExistingPhoto = async (photoId: number) => {
+        if (!actor) return;
+        setLoading(true);
+        setError('');
+        try {
+            await api.delete(`/users/${actor.id}/photos/${photoId}`);
+            setExistingPhotos(prev => prev.filter(p => p.id !== photoId));
+        } catch (err: any) {
+            setError(err.response?.data?.message || 'Failed to delete photo');
+        } finally {
+            setLoading(false);
+        }
     };
 
     const handleSubmit = async (e: React.FormEvent) => {
@@ -370,6 +394,47 @@ export default function AddEditActorDialog({ open, onClose, onSuccess, actor }: 
                             </Typography>
                             <Divider sx={{ mt: 0.5, mb: 2.5 }} />
                             
+                            {/* Existing photos (edit mode) */}
+                            {actor && existingPhotos.length > 0 && (
+                                <Stack direction="row" spacing={1} flexWrap="wrap" sx={{ mb: 2, gap: 1 }}>
+                                    {existingPhotos.map((photo) => (
+                                        <Box
+                                            key={photo.id}
+                                            sx={{
+                                                position: 'relative',
+                                                width: 96,
+                                                height: 120,
+                                                borderRadius: 2,
+                                                overflow: 'hidden',
+                                                border: '1px solid',
+                                                borderColor: 'divider',
+                                            }}
+                                        >
+                                            <img
+                                                src={`${import.meta.env.VITE_UPLOADS_URL}/${photo.filePath}`}
+                                                alt="Actor"
+                                                style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                                            />
+                                            <IconButton
+                                                size="small"
+                                                onClick={() => handleDeleteExistingPhoto(photo.id)}
+                                                sx={{
+                                                    position: 'absolute',
+                                                    top: 4,
+                                                    right: 4,
+                                                    bgcolor: 'rgba(0,0,0,0.6)',
+                                                    color: 'common.white',
+                                                    '&:hover': { bgcolor: 'rgba(0,0,0,0.8)' },
+                                                }}
+                                                disabled={loading}
+                                            >
+                                                <DeleteIcon fontSize="small" />
+                                            </IconButton>
+                                        </Box>
+                                    ))}
+                                </Stack>
+                            )}
+
                             <Box 
                                 sx={{ 
                                     p: 4, 

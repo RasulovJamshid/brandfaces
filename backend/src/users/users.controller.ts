@@ -167,4 +167,13 @@ export class UsersController {
     async delete(@Param('id', ParseIntPipe) id: number) {
         return this.usersService.delete(id);
     }
+
+    @Delete(':id/photos/:photoId')
+    async deletePhoto(
+        @Param('id', ParseIntPipe) id: number,
+        @Param('photoId', ParseIntPipe) photoId: number,
+    ) {
+        await this.usersService.deletePhoto(id, photoId);
+        return { success: true };
+    }
 }
