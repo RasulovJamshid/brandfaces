@@ -53,8 +53,8 @@ services:
       context: ./frontend
       dockerfile: Dockerfile.prod
       args:
-        VITE_API_URL: ${VITE_API_URL:-https://api.yourdomain.com}
-        VITE_UPLOADS_URL: ${VITE_UPLOADS_URL:-https://api.yourdomain.com/uploads}
+        VITE_API_URL: ${VITE_API_URL:-https://api.brandfaces.uz}
+        VITE_UPLOADS_URL: ${VITE_UPLOADS_URL:-https://api.brandfaces.uz/uploads}
     container_name: casting_frontend
     restart: unless-stopped
     networks:

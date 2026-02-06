@@ -24,9 +24,9 @@ mkdir -p nginx/logs
 
 ### 2. Update Domain Names
 
-Edit `nginx/conf.d/default.conf` and replace:
-- `yourdomain.com` with your actual domain
-- `api.yourdomain.com` with your API subdomain
+Domain is configured as:
+- `brandfaces.uz` - Main domain
+- `api.brandfaces.uz` - API subdomain
 
 ### 3. SSL Certificate Setup
 
@@ -45,14 +45,14 @@ sudo apt-get install certbot python3-certbot-nginx
 
 3. Obtain certificates:
 ```bash
-sudo certbot --nginx -d yourdomain.com -d api.yourdomain.com
+sudo certbot --nginx -d brandfaces.uz -d www.brandfaces.uz -d api.brandfaces.uz
 ```
 
 4. Uncomment SSL certificate lines in `nginx/conf.d/default.conf`:
 ```nginx
-ssl_certificate /etc/letsencrypt/live/yourdomain.com/fullchain.pem;
-ssl_certificate_key /etc/letsencrypt/live/yourdomain.com/privkey.pem;
-ssl_trusted_certificate /etc/letsencrypt/live/yourdomain.com/chain.pem;
+ssl_certificate /etc/letsencrypt/live/brandfaces.uz/fullchain.pem;
+ssl_certificate_key /etc/letsencrypt/live/brandfaces.uz/privkey.pem;
+ssl_trusted_certificate /etc/letsencrypt/live/brandfaces.uz/chain.pem;
 ```
 
 5. Update docker-compose.prod.yml to mount certificates:
@@ -113,12 +113,12 @@ docker-compose -f docker-compose.prod.yml exec nginx nginx -s reload
 
 ### Endpoints
 
-#### Frontend (yourdomain.com)
+#### Frontend (brandfaces.uz)
 - Serves React SPA
 - Static asset caching (1 year)
 - SPA routing support
 
-#### Backend API (api.yourdomain.com)
+#### Backend API (api.brandfaces.uz)
 - Proxies to backend:3000
 - WebSocket support
 - Rate limiting

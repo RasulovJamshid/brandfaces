@@ -38,12 +38,12 @@ JWT_SECRET=your_strong_jwt_secret
 PORT=3000
 
 # Superadmin Seeder
-ADMIN_EMAIL=admin@yourdomain.com
+ADMIN_EMAIL=admin@brandfaces.uz
 ADMIN_PASSWORD=your_strong_admin_password
 
 # Frontend Configuration
-VITE_API_URL=https://api.yourdomain.com
-VITE_UPLOADS_URL=https://api.yourdomain.com/uploads
+VITE_API_URL=https://api.brandfaces.uz
+VITE_UPLOADS_URL=https://api.brandfaces.uz/uploads
 
 # Application Environment
 NODE_ENV=production
@@ -51,11 +51,13 @@ NODE_ENV=production
 
 **Note:** No need to create separate `.env` files in `backend/` or `frontend/` directories.
 
-## Step 2: Update Domain Names (1 minute)
+## Step 2: Domain Configuration
 
-Edit `nginx/conf.d/default.conf` and replace:
-- `yourdomain.com` → your actual domain
-- `api.yourdomain.com` → your API subdomain
+Domain is configured as:
+- `brandfaces.uz` → Main domain
+- `api.brandfaces.uz` → API subdomain
+
+No changes needed - already configured!
 
 ## Step 3: Deploy (3 minutes)
 
@@ -99,7 +101,7 @@ sudo apt-get update
 sudo apt-get install certbot python3-certbot-nginx
 
 # Get certificate
-sudo certbot --nginx -d yourdomain.com -d api.yourdomain.com
+sudo certbot --nginx -d brandfaces.uz -d www.brandfaces.uz -d api.brandfaces.uz
 
 # Update docker-compose.prod.yml to mount certificates
 # Add under nginx volumes:
@@ -133,7 +135,7 @@ curl http://localhost/api/health    # Should return API health status
 
 ## Step 6: First Login
 
-1. Open your browser to `https://yourdomain.com`
+1. Open your browser to `https://brandfaces.uz`
 2. Login with credentials from `.env`:
    - Email: Value of `ADMIN_EMAIL`
    - Password: Value of `ADMIN_PASSWORD`
