@@ -152,10 +152,10 @@ export class RegistrationScene {
         const photos = ctx.scene.session.userData.photos ?? []; // Ensure array
         ctx.scene.session.userData.photos = photos;
 
-        console.log('Photo step - message type:', msg);
+        console.log('Photo step - message has text:', msg.text, 'has photo:', !!msg.photo);
 
         // Check for "Done" in all languages - MUST BE FIRST
-        if ('text' in msg) {
+        if (msg.text) {
             const doneButtons = ['Done', 'Готово', 'Tayyor'];
             console.log('Received text:', msg.text, 'Checking against:', doneButtons);
             
@@ -172,12 +172,13 @@ export class RegistrationScene {
                 return;
             } else {
                 // User sent text but not "Done"
+                console.log('Text received but not Done button:', msg.text);
                 await ctx.reply(t(lang, 'sendPhotoOrDone'));
                 return;
             }
         }
 
-        if ('photo' in msg) {
+        if (msg.photo) {
             if (photos.length >= 5) {
                 return ctx.reply(t(lang, 'photosMax'));
             }
