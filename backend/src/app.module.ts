@@ -24,18 +24,17 @@ import { CitiesModule } from './cities/cities.module';
       rootPath: join(process.cwd(), 'uploads'),
       serveRoot: '/uploads',
     }),
-    // TelegrafModule disabled temporarily - uncomment and add valid BOT_TOKEN to enable
-    // TelegrafModule.forRootAsync({
-    //   imports: [ConfigModule],
-    //   useFactory: (configService: ConfigService) => ({
-    //     token: configService.get<string>('BOT_TOKEN') || 'change_me',
-    //     middlewares: [session()],
-    //     launchOptions: {
-    //       dropPendingUpdates: true,
-    //     },
-    //   }),
-    //   inject: [ConfigService],
-    // }),
+    TelegrafModule.forRootAsync({
+      imports: [ConfigModule],
+      useFactory: (configService: ConfigService) => ({
+        token: configService.get<string>('BOT_TOKEN') || 'change_me',
+        middlewares: [session()],
+        launchOptions: {
+          dropPendingUpdates: true,
+        },
+      }),
+      inject: [ConfigService],
+    }),
     PrismaModule,
     UsersModule,
     FilesModule,
