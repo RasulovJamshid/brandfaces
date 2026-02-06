@@ -5,12 +5,10 @@ import {
     Alert, Card, CardContent, Paper,
     IconButton, Tooltip, Chip, Stack, Grid, alpha,
 } from '@mui/material';
-import WebhookIcon from '@mui/icons-material/Webhook';
 import RefreshIcon from '@mui/icons-material/Refresh';
 import KeyIcon from '@mui/icons-material/Key';
 import DeleteSweepIcon from '@mui/icons-material/DeleteSweep';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
-import ErrorIcon from '@mui/icons-material/Error';
 import ContentCopyIcon from '@mui/icons-material/ContentCopy';
 import { useTranslation } from 'react-i18next';
 import api from '../api';
@@ -18,31 +16,8 @@ import AppBar from '../components/AppBar';
 
 export default function SystemSettingsPage() {
     const { t } = useTranslation();
-    const [webhookUrl, setWebhookUrl] = useState('');
-    const [webhookStatus, setWebhookStatus] = useState<'success' | 'error' | null>(null);
     const [botToken, setBotToken] = useState('');
     const [copied, setCopied] = useState(false);
-
-    const setWebhookMutation = useMutation({
-        mutationFn: () => api.post('/bot/set-webhook', { url: webhookUrl }),
-        onSuccess: () => {
-            setWebhookStatus('success');
-            setTimeout(() => setWebhookStatus(null), 3000);
-        },
-        onError: () => {
-            setWebhookStatus('error');
-            setTimeout(() => setWebhookStatus(null), 3000);
-        },
-    });
-
-    const deleteWebhookMutation = useMutation({
-        mutationFn: () => api.post('/bot/delete-webhook'),
-        onSuccess: () => {
-            setWebhookUrl('');
-            setWebhookStatus('success');
-            setTimeout(() => setWebhookStatus(null), 3000);
-        },
-    });
 
     const resetPendingMutation = useMutation({
         mutationFn: () => api.post('/bot/reset-pending-updates'),
@@ -75,81 +50,6 @@ export default function SystemSettingsPage() {
                 </Box>
 
                 <Grid container spacing={3} alignItems="stretch">
-                    {/* Telegram Webhook Settings */}
-                    <Grid size={{ xs: 12, md: 6 }}>
-                        <Card elevation={0} sx={{ height: '100%', display: 'flex', flexDirection: 'column', border: '1px solid', borderColor: 'divider' }}>
-                            <CardContent sx={{ flexGrow: 1, display: 'flex', flexDirection: 'column' }}>
-                                <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 3 }}>
-                                    <Box sx={{
-                                        p: 1.5,
-                                        borderRadius: 2,
-                                        bgcolor: (theme) => alpha(theme.palette.primary.main, 0.1),
-                                        display: 'flex',
-                                        alignItems: 'center',
-                                        justifyContent: 'center'
-                                    }}>
-                                        <WebhookIcon sx={{ fontSize: 28, color: 'primary.main' }} />
-                                    </Box>
-                                    <Box>
-                                        <Typography variant="h6" sx={{ fontWeight: 700 }}>
-                                            {t('systemSettings.webhookTitle', 'Telegram Webhook')}
-                                        </Typography>
-                                        <Typography variant="body2" color="text.secondary">
-                                            {t('systemSettings.webhookSubtitle', 'Configure bot webhook URL')}
-                                        </Typography>
-                                    </Box>
-                                </Box>
-
-                                {webhookStatus && (
-                                    <Alert
-                                        severity={webhookStatus}
-                                        icon={webhookStatus === 'success' ? <CheckCircleIcon fontSize="small" /> : <ErrorIcon fontSize="small" />}
-                                        sx={{ mb: 3, borderRadius: 2 }}
-                                    >
-                                        {webhookStatus === 'success'
-                                            ? t('systemSettings.webhookSuccess', 'Webhook updated successfully')
-                                            : t('systemSettings.webhookError', 'Failed to update webhook')}
-                                    </Alert>
-                                )}
-
-                                <Box sx={{ flexGrow: 1 }}>
-                                    <TextField
-                                        fullWidth
-                                        label={t('systemSettings.webhookUrl', 'Webhook URL')}
-                                        value={webhookUrl}
-                                        onChange={(e) => setWebhookUrl(e.target.value)}
-                                        placeholder="https://yourdomain.com/api/bot/webhook"
-                                        size="medium"
-                                        sx={{ mb: 1 }}
-                                        helperText={t('systemSettings.webhookHelp', 'Enter your server webhook URL')}
-                                        InputProps={{ sx: { borderRadius: 2 } }}
-                                    />
-                                </Box>
-
-                                <Stack direction="row" spacing={1.5} sx={{ mt: 3 }}>
-                                    <Button
-                                        variant="contained"
-                                        onClick={() => setWebhookMutation.mutate()}
-                                        disabled={!webhookUrl || setWebhookMutation.isPending}
-                                        fullWidth
-                                        sx={{ py: 1.2, fontWeight: 700 }}
-                                    >
-                                        {t('systemSettings.setWebhook', 'Set Webhook')}
-                                    </Button>
-                                    <Button
-                                        variant="outlined"
-                                        color="error"
-                                        onClick={() => deleteWebhookMutation.mutate()}
-                                        disabled={deleteWebhookMutation.isPending}
-                                        sx={{ py: 1.2, fontWeight: 700 }}
-                                    >
-                                        {t('systemSettings.delete', 'Delete')}
-                                    </Button>
-                                </Stack>
-                            </CardContent>
-                        </Card>
-                    </Grid>
-
                     {/* Bot Token Settings */}
                     <Grid size={{ xs: 12, md: 6 }}>
                         <Card elevation={0} sx={{ height: '100%', display: 'flex', flexDirection: 'column', border: '1px solid', borderColor: 'divider' }}>
