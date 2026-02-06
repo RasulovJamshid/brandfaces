@@ -56,19 +56,20 @@ export class RegistrationScene {
 
     @WizardStep(0)
     @On('text')
-    async onName(@Ctx() ctx: RegistrationContext, @Message('text') msg: string) {
+    async onName(@Ctx() ctx: RegistrationContext, @Message() msg: any) {
         const lang = this.getLang(ctx);
-        if (msg.length < 2) return ctx.reply(t(lang, 'nameShort'));
-        ctx.scene.session.userData.fullName = msg;
+        const name = msg.text;
+        if (!name || name.length < 2) return ctx.reply(t(lang, 'nameShort'));
+        ctx.scene.session.userData.fullName = name;
         await ctx.reply(t(lang, 'askAge'));
         ctx.wizard.next();
     }
 
     @WizardStep(1)
     @On('text')
-    async onAge(@Ctx() ctx: RegistrationContext, @Message('text') msg: string) {
+    async onAge(@Ctx() ctx: RegistrationContext, @Message() msg: any) {
         const lang = this.getLang(ctx);
-        const age = parseInt(msg);
+        const age = parseInt(msg.text);
         if (isNaN(age) || age <= 16) {
             await ctx.reply(t(lang, 'ageInvalid'));
             return;
@@ -82,14 +83,15 @@ export class RegistrationScene {
 
     @WizardStep(2)
     @On('text')
-    async onGender(@Ctx() ctx: RegistrationContext, @Message('text') msg: string) {
+    async onGender(@Ctx() ctx: RegistrationContext, @Message() msg: any) {
         const lang = this.getLang(ctx);
+        const text = msg.text;
         // Accept gender in all languages
         const genderMap: Record<string, Gender> = {
             'MALE': 'MALE', 'ERKAK': 'MALE', 'МУЖСКОЙ': 'MALE',
             'FEMALE': 'FEMALE', 'AYOL': 'FEMALE', 'ЖЕНСКИЙ': 'FEMALE'
         };
-        const gender = genderMap[msg.toUpperCase()];
+        const gender = genderMap[text.toUpperCase()];
         if (!gender) {
             await ctx.reply(t(lang, 'genderInvalid'));
             return;
@@ -98,12 +100,19 @@ export class RegistrationScene {
 
         // Fetch cities and show selection
         const cities = await this.citiesService.findAll();
-        const cityButtons = cities.slice(0, 20).map(city => [
-            Markup.button.callback(
-                city.nameRu || city.name,
-                `city_${city.id}`
-            )
-        ]);
+        const cityButtons = cities.slice(0, 20).map(city => {
+            // Show city name in selected language
+            let cityName = city.name;
+            if (lang === 'ru' && city.nameRu) cityName = city.nameRu;
+            else if (lang === 'en' && city.nameEn) cityName = city.nameEn;
+            
+            return [
+                Markup.button.callback(
+                    cityName,
+                    `city_${city.id}`
+                )
+            ];
+        });
 
         await ctx.reply(
             t(lang, 'askCity'),
@@ -130,10 +139,16 @@ export class RegistrationScene {
         ctx.scene.session.userData.city = city.name;  // Keep for display
 
         const lang = this.getLang(ctx as any);
+        
+        // Show city name in selected language
+        let cityName = city.name;
+        if (lang === 'ru' && city.nameRu) cityName = city.nameRu;
+        else if (lang === 'en' && city.nameEn) cityName = city.nameEn;
+        
         await ctx.answerCbQuery();
         await ctx.reply(
-            t(lang, 'citySelected', { city: city.nameRu || city.name }),
-            Markup.keyboard([t(lang, 'done')]).resize()
+            t(lang, 'citySelected', { city: cityName }),
+            Markup.keyboard([[t(lang, 'done')]]).resize()
         );
         ctx.wizard.selectStep(4);  // Skip to photo step
     }
@@ -152,12 +167,13 @@ export class RegistrationScene {
         const photos = ctx.scene.session.userData.photos ?? [];
         ctx.scene.session.userData.photos = photos;
 
-        console.log('Photo step - message type:', msg.photo ? 'photo' : msg.document ? 'document' : 'text');
+        console.log('Photo step - message:', JSON.stringify({ text: msg.text, hasPhoto: !!msg.photo, hasDoc: !!msg.document }));
 
         // Check for "Done" in all languages - MUST BE FIRST
         if (msg.text) {
             const doneButtons = ['Done', 'Готово', 'Tayyor'];
             const text = msg.text.trim();
+            console.log('Comparing text:', JSON.stringify(text), 'against:', doneButtons);
 
             if (doneButtons.includes(text)) {
                 console.log('Done button pressed, photos count:', photos.length);
@@ -228,9 +244,9 @@ export class RegistrationScene {
 
     @WizardStep(6)
     @On('text')
-    async onPrice(@Ctx() ctx: RegistrationContext, @Message('text') msg: string) {
+    async onPrice(@Ctx() ctx: RegistrationContext, @Message() msg: any) {
         const lang = this.getLang(ctx);
-        const price = parseFloat(msg);
+        const price = parseFloat(msg.text);
         if (isNaN(price)) return ctx.reply(t(lang, 'priceInvalid'));
         ctx.scene.session.userData.price = price;
         await ctx.reply(t(lang, 'askSocials'));
@@ -239,9 +255,9 @@ export class RegistrationScene {
 
     @WizardStep(7)
     @On('text')
-    async onSocials(@Ctx() ctx: RegistrationContext, @Message('text') msg: string) {
+    async onSocials(@Ctx() ctx: RegistrationContext, @Message() msg: any) {
         const lang = this.getLang(ctx);
-        ctx.scene.session.userData.socials = msg;
+        ctx.scene.session.userData.socials = msg.text;
 
         // Summary
         const d = ctx.scene.session.userData;
@@ -269,16 +285,17 @@ export class RegistrationScene {
 
     @WizardStep(8)
     @On('text')
-    async onConfirm(@Ctx() ctx: RegistrationContext, @Message('text') msg: string) {
+    async onConfirm(@Ctx() ctx: RegistrationContext, @Message() msg: any) {
         const lang = this.getLang(ctx);
+        const text = msg.text;
         const restartButtons = ['Restart', 'Начать заново', 'Qaytadan boshlash'];
         const confirmButtons = ['Confirm', 'Подтвердить', 'Tasdiqlash'];
 
-        if (restartButtons.includes(msg)) {
+        if (restartButtons.includes(text)) {
             await ctx.scene.reenter();
             return;
         }
-        if (confirmButtons.includes(msg)) {
+        if (confirmButtons.includes(text)) {
             const d = ctx.scene.session.userData;
             if (!d.telegramId || !d.fullName || !d.age || !d.gender || !d.city || !d.phone || d.price === undefined) {
                 await ctx.reply(t(lang, 'missingData'));
