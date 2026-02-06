@@ -1,0 +1,40 @@
+welcome: "Welcome to Casting Platform Bot! 🎬"
+
+language:
+  select: "Please select your language:"
+  changed: "Language changed to English 🇬🇧"
+
+linkaccount:
+  prompt: "Please enter your 6-character verification code from the dashboard:"
+  success: "✅ Success! Your Telegram account has been linked to {{email}}"
+  error: "❌ Invalid or expired code. Please generate a new code from the dashboard."
+  already_linked: "⚠️ This Telegram account is already linked to another admin."
+
+resetpassword:
+  prompt: "Please enter your admin email address:"
+  success: |
+    ✅ Password reset link sent!
+    
+    Click here to reset your password:
+    {{resetUrl}}
+    
+    ⏰ This link will expire in 15 minutes.
+  error: |
+    ❌ Could not send reset link. Please make sure:
+    • Your email is correct
+    • Your Telegram account is linked
+    • Your admin account is active
+  rate_limit: "⚠️ Too many reset requests. Please try again later."
+
+help: |
+  🎬 **Casting Platform Bot Commands**
+  
+  /start - Start the bot
+  /language - Change language
+  /linkaccount - Link your Telegram to admin account
+  /resetpassword - Reset your admin password
+  /help - Show this help message
+
+errors:
+  unknown: "❌ An error occurred. Please try again."
+  not_linked: "⚠️ Your Telegram account is not linked. Please link it first using /linkaccount"

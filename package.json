@@ -1,0 +1,6 @@
+{
+  "dependencies": {
+    "@mui/x-charts": "^8.27.0",
+    "@types/react-i18next": "^8.1.0"
+  }
+}

@@ -1,0 +1,114 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model User {
+  id          Int       @id @default(autoincrement())
+  telegramId  BigInt?   @unique // Optional for manual creation
+  username    String?
+  fullName    String
+  age         Int
+  gender      Gender
+  city        String    // Keep for backward compatibility during migration
+  cityId      Int?      // Optional during migration period
+  cityModel   City?     @relation(fields: [cityId], references: [id])
+  phone       String
+  price       Decimal   @db.Decimal(12, 2) // Price per video
+  experience  ExperienceLevel
+  socialLinks String?   // Store as JSON string or text
+  status      UserStatus @default(ACTIVE)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  createdBy   String?   // "telegram" or "admin"
+  photos      Photo[]
+
+  @@index([cityId])
+}
+
+model City {
+  id        Int      @id @default(autoincrement())
+  name      String   @unique // Primary name (can be English or local)
+  nameEn    String?  // English name
+  nameRu    String?  // Russian name
+  region    String?  // Region/Oblast
+  country   String   @default("Uzbekistan")
+  isActive  Boolean  @default(true)
+  sortOrder Int      @default(0) // For custom ordering in dropdowns
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  users     User[]
+
+  @@index([nameEn])
+  @@index([nameRu])
+  @@index([country])
+  @@index([isActive])
+}
+
+model Photo {
+  id        Int      @id @default(autoincrement())
+  filePath  String   // Local path or S3 URL
+  isMain    Boolean  @default(false)
+  userId    Int
+  user      User     @relation(fields: [userId], references: [id])
+}
+
+model Admin {
+  id                  Int                   @id @default(autoincrement())
+  email               String                @unique
+  password            String
+  name                String
+  role                AdminRole             @default(ADMIN)
+  isActive            Boolean               @default(true)
+  telegramId          String?               @unique
+  telegramUsername    String?
+  createdAt           DateTime              @default(now())
+  updatedAt           DateTime              @updatedAt
+  passwordResetTokens PasswordResetToken[]
+  logs                ActivityLog[]
+}
+
+model PasswordResetToken {
+  id        Int      @id @default(autoincrement())
+  adminId   Int
+  admin     Admin    @relation(fields: [adminId], references: [id], onDelete: Cascade)
+  token     String   @unique
+  expiresAt DateTime
+  used      Boolean  @default(false)
+  createdAt DateTime @default(now())
+}
+
+model ActivityLog {
+  id        Int      @id @default(autoincrement())
+  adminId   Int
+  admin     Admin    @relation(fields: [adminId], references: [id])
+  action    String   // e.g., "CREATED_ACTOR", "DELETED_ACTOR", "UPDATED_ACTOR"
+  entityType String  // e.g., "USER", "ADMIN"
+  entityId  Int?
+  details   String?  // JSON string with additional info
+  createdAt DateTime @default(now())
+}
+
+enum Gender {
+  MALE
+  FEMALE
+}
+
+enum ExperienceLevel {
+  NO_EXP
+  HAS_EXP
+  PRO
+}
+
+enum UserStatus {
+  ACTIVE
+  HIDDEN
+}
+
+enum AdminRole {
+  SUPER_ADMIN
+  ADMIN
+}

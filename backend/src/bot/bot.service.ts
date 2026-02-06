@@ -1,0 +1,138 @@
+import { Injectable, Logger, OnModuleInit } from '@nestjs/common';
+import { InjectBot } from 'nestjs-telegraf';
+import { Telegraf } from 'telegraf';
+import { ConfigService } from '@nestjs/config';
+
+@Injectable()
+export class BotService implements OnModuleInit {
+    private readonly logger = new Logger(BotService.name);
+    private currentBot: Telegraf;
+
+    constructor(
+        @InjectBot() private bot: Telegraf,
+        private configService: ConfigService,
+    ) {
+        this.currentBot = bot;
+    }
+
+    onModuleInit() {
+        this.logger.log('BotService initialized');
+    }
+
+    /**
+     * Update bot token dynamically without restart
+     */
+    async updateBotToken(newToken: string): Promise<any> {
+        try {
+            this.logger.log('Updating bot token...');
+            
+            // Stop current bot
+            await this.currentBot.stop();
+            this.logger.log('Current bot stopped');
+
+            // Create new bot instance with new token
+            const newBot = new Telegraf(newToken);
+            
+            // Test the new token by getting bot info
+            const botInfo = await newBot.telegram.getMe();
+            this.logger.log(`New bot verified: @${botInfo.username}`);
+
+            // Replace current bot
+            this.currentBot = newBot;
+            
+            // Start new bot (if it was running in polling mode)
+            // Note: If using webhook, you'll need to set it again
+            // await newBot.launch();
+
+            this.logger.log('Bot token updated successfully');
+            
+            return {
+                success: true,
+                botInfo,
+                message: 'Token updated successfully. Bot is now using the new token.',
+            };
+        } catch (error) {
+            this.logger.error('Failed to update bot token', error);
+            throw new Error('Invalid token or failed to initialize bot');
+        }
+    }
+
+    /**
+     * Set webhook for the bot
+     */
+    async setWebhook(url: string): Promise<any> {
+        try {
+            this.logger.log(`Setting webhook to: ${url}`);
+            const result = await this.currentBot.telegram.setWebhook(url);
+            this.logger.log('Webhook set successfully');
+            return result;
+        } catch (error) {
+            this.logger.error('Failed to set webhook', error);
+            throw error;
+        }
+    }
+
+    /**
+     * Delete webhook
+     */
+    async deleteWebhook(): Promise<any> {
+        try {
+            this.logger.log('Deleting webhook');
+            const result = await this.currentBot.telegram.deleteWebhook({ drop_pending_updates: false });
+            this.logger.log('Webhook deleted successfully');
+            return result;
+        } catch (error) {
+            this.logger.error('Failed to delete webhook', error);
+            throw error;
+        }
+    }
+
+    /**
+     * Drop all pending updates
+     */
+    async dropPendingUpdates(): Promise<any> {
+        try {
+            this.logger.log('Dropping pending updates');
+            // Delete webhook with drop_pending_updates flag
+            const result = await this.currentBot.telegram.deleteWebhook({ drop_pending_updates: true });
+            this.logger.log('Pending updates dropped successfully');
+            return result;
+        } catch (error) {
+            this.logger.error('Failed to drop pending updates', error);
+            throw error;
+        }
+    }
+
+    /**
+     * Get webhook info
+     */
+    async getWebhookInfo(): Promise<any> {
+        try {
+            const info = await this.currentBot.telegram.getWebhookInfo();
+            return info;
+        } catch (error) {
+            this.logger.error('Failed to get webhook info', error);
+            throw error;
+        }
+    }
+
+    /**
+     * Get bot info
+     */
+    async getBotInfo(): Promise<any> {
+        try {
+            const info = await this.currentBot.telegram.getMe();
+            return info;
+        } catch (error) {
+            this.logger.error('Failed to get bot info', error);
+            throw error;
+        }
+    }
+
+    /**
+     * Get current bot instance
+     */
+    getCurrentBot(): Telegraf {
+        return this.currentBot;
+    }
+}

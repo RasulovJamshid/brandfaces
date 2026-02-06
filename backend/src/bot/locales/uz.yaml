@@ -1,0 +1,40 @@
+welcome: "Kasting Platformasi botiga xush kelibsiz! 🎬"
+
+language:
+  select: "Iltimos, tilni tanlang:"
+  changed: "Til O'zbekchaga o'zgartirildi 🇺🇿"
+
+linkaccount:
+  prompt: "Iltimos, boshqaruv panelidan 6 raqamli tasdiqlash kodini kiriting:"
+  success: "✅ Muvaffaqiyatli! Telegram hisobingiz {{email}} ga bog'landi"
+  error: "❌ Noto'g'ri yoki muddati o'tgan kod. Iltimos, boshqaruv panelidan yangi kod yarating."
+  already_linked: "⚠️ Bu Telegram hisobi boshqa administratorga bog'langan."
+
+resetpassword:
+  prompt: "Iltimos, administrator email manzilingizni kiriting:"
+  success: |
+    ✅ Parolni tiklash havolasi yuborildi!
+    
+    Parolni tiklash uchun shu yerni bosing:
+    {{resetUrl}}
+    
+    ⏰ Bu havola 15 daqiqadan keyin amal qilmaydi.
+  error: |
+    ❌ Tiklash havolasini yuborib bo'lmadi. Iltimos, tekshiring:
+    • Email manzilingiz to'g'ri ekanligini
+    • Telegram hisobingiz bog'langanligini
+    • Administrator hisobingiz faol ekanligini
+  rate_limit: "⚠️ Juda ko'p tiklash so'rovlari. Iltimos, keyinroq urinib ko'ring."
+
+help: |
+  🎬 **Kasting Platformasi bot buyruqlari**
+  
+  /start - Botni ishga tushirish
+  /language - Tilni o'zgartirish
+  /linkaccount - Telegramni administrator hisobiga bog'lash
+  /resetpassword - Administrator parolini tiklash
+  /help - Bu xabarni ko'rsatish
+
+errors:
+  unknown: "❌ Xatolik yuz berdi. Iltimos, qaytadan urinib ko'ring."
+  not_linked: "⚠️ Telegram hisobingiz bog'lanmagan. Iltimos, avval /linkaccount yordamida bog'lang"
