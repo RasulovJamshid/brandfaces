@@ -4,9 +4,88 @@ This guide will help you deploy CastingBot to production in under 10 minutes.
 
 ## Prerequisites
 
-- Docker and Docker Compose installed
 - Domain name with DNS access
 - Server with SSH access (minimum 2GB RAM)
+- Docker and Docker Compose (see installation below)
+
+## Step 0: Install Docker (5 minutes)
+
+### Ubuntu/Debian:
+
+```bash
+# Update package index
+sudo apt-get update
+
+# Install dependencies
+sudo apt-get install -y \
+    ca-certificates \
+    curl \
+    gnupg \
+    lsb-release
+
+# Add Docker's official GPG key
+sudo mkdir -p /etc/apt/keyrings
+curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor -o /etc/apt/keyrings/docker.gpg
+
+# Set up repository
+echo \
+  "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/ubuntu \
+  $(lsb_release -cs) stable" | sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
+
+# Install Docker Engine
+sudo apt-get update
+sudo apt-get install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
+
+# Add your user to docker group (optional, to run without sudo)
+sudo usermod -aG docker $USER
+newgrp docker
+
+# Verify installation
+docker --version
+docker compose version
+```
+
+### CentOS/RHEL:
+
+```bash
+# Install required packages
+sudo yum install -y yum-utils
+sudo yum-config-manager --add-repo https://download.docker.com/linux/centos/docker-ce.repo
+
+# Install Docker Engine
+sudo yum install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
+
+# Start Docker
+sudo systemctl start docker
+sudo systemctl enable docker
+
+# Add your user to docker group
+sudo usermod -aG docker $USER
+newgrp docker
+
+# Verify installation
+docker --version
+docker compose version
+```
+
+### Windows (WSL2):
+
+1. Install [Docker Desktop for Windows](https://www.docker.com/products/docker-desktop/)
+2. Enable WSL2 integration in Docker Desktop settings
+3. Open WSL2 terminal and verify:
+```bash
+docker --version
+docker compose version
+```
+
+### macOS:
+
+1. Install [Docker Desktop for Mac](https://www.docker.com/products/docker-desktop/)
+2. Open Terminal and verify:
+```bash
+docker --version
+docker compose version
+```
 
 ## Step 1: Clone and Configure (2 minutes)
 
@@ -79,16 +158,16 @@ Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass
 mkdir -p nginx/ssl nginx/logs backend/uploads
 
 # Build and start
-docker-compose -f docker-compose.prod.yml up -d
+docker compose -f docker-compose.prod.yml up -d
 
 # Wait for database (about 10 seconds)
 sleep 10
 
 # Run migrations
-docker-compose -f docker-compose.prod.yml exec backend npx prisma migrate deploy
+docker compose -f docker-compose.prod.yml exec backend npx prisma migrate deploy
 
 # Seed superadmin
-docker-compose -f docker-compose.prod.yml exec backend npx prisma db seed
+docker compose -f docker-compose.prod.yml exec backend npx prisma db seed
 ```
 
 ## Step 4: Configure SSL (2 minutes)
@@ -108,7 +187,7 @@ sudo certbot --nginx -d brandfaces.uz -d www.brandfaces.uz -d api.brandfaces.uz
 #   - /etc/letsencrypt:/etc/letsencrypt:ro
 
 # Restart nginx
-docker-compose -f docker-compose.prod.yml restart nginx
+docker compose -f docker-compose.prod.yml restart nginx
 ```
 
 ### Option B: Skip SSL (Development Only)
@@ -119,7 +198,7 @@ Comment out HTTPS server blocks in `nginx/conf.d/default.conf` and use HTTP only
 
 ```bash
 # Check all services are running
-docker-compose -f docker-compose.prod.yml ps
+docker compose -f docker-compose.prod.yml ps
 
 # Expected output:
 # NAME                 STATUS
@@ -145,26 +224,26 @@ curl http://localhost/api/health    # Should return API health status
 
 ```bash
 # View logs
-docker-compose -f docker-compose.prod.yml logs -f
+docker compose -f docker-compose.prod.yml logs -f
 
 # View specific service logs
-docker-compose -f docker-compose.prod.yml logs -f backend
+docker compose -f docker-compose.prod.yml logs -f backend
 
 # Restart a service
-docker-compose -f docker-compose.prod.yml restart backend
+docker compose -f docker-compose.prod.yml restart backend
 
 # Stop all services
-docker-compose -f docker-compose.prod.yml down
+docker compose -f docker-compose.prod.yml down
 
 # Update and redeploy
 git pull origin main
-docker-compose -f docker-compose.prod.yml up -d --build
+docker compose -f docker-compose.prod.yml up -d --build
 
 # Backup database
 docker exec casting_db pg_dump -U postgres casting_db > backup.sql
 
 # Access database
-docker-compose -f docker-compose.prod.yml exec postgres psql -U postgres -d casting_db
+docker compose -f docker-compose.prod.yml exec postgres psql -U postgres -d casting_db
 ```
 
 ## Troubleshooting
@@ -172,35 +251,35 @@ docker-compose -f docker-compose.prod.yml exec postgres psql -U postgres -d cast
 ### Services won't start
 ```bash
 # Check logs
-docker-compose -f docker-compose.prod.yml logs
+docker compose -f docker-compose.prod.yml logs
 
 # Check if ports are in use
 sudo netstat -tulpn | grep -E ':(80|443|3000|5432)'
 
 # Rebuild from scratch
-docker-compose -f docker-compose.prod.yml down -v
-docker-compose -f docker-compose.prod.yml up -d --build
+docker compose -f docker-compose.prod.yml down -v
+docker compose -f docker-compose.prod.yml up -d --build
 ```
 
 ### Can't login
 ```bash
 # Re-run seeder
-docker-compose -f docker-compose.prod.yml exec backend npx prisma db seed
+docker compose -f docker-compose.prod.yml exec backend npx prisma db seed
 
 # Check admin exists
-docker-compose -f docker-compose.prod.yml exec postgres psql -U postgres -d casting_db -c "SELECT * FROM \"Admin\";"
+docker compose -f docker-compose.prod.yml exec postgres psql -U postgres -d casting_db -c "SELECT * FROM \"Admin\";"
 ```
 
 ### 502 Bad Gateway
 ```bash
 # Check backend is running
-docker-compose -f docker-compose.prod.yml ps backend
+docker compose -f docker-compose.prod.yml ps backend
 
 # Check backend logs
-docker-compose -f docker-compose.prod.yml logs backend
+docker compose -f docker-compose.prod.yml logs backend
 
 # Restart backend
-docker-compose -f docker-compose.prod.yml restart backend
+docker compose -f docker-compose.prod.yml restart backend
 ```
 
 ## Security Checklist

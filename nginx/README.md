@@ -34,7 +34,7 @@ Domain is configured as:
 
 1. Start services without SSL first:
 ```bash
-docker-compose -f docker-compose.prod.yml up -d
+docker compose -f docker-compose.prod.yml up -d
 ```
 
 2. Install Certbot on host:
@@ -64,7 +64,7 @@ nginx:
 
 6. Reload Nginx:
 ```bash
-docker-compose -f docker-compose.prod.yml restart nginx
+docker compose -f docker-compose.prod.yml restart nginx
 ```
 
 #### Option B: Custom Certificates
@@ -85,10 +85,10 @@ ssl_trusted_certificate /etc/nginx/ssl/chain.pem;
 
 ```bash
 # Test nginx configuration
-docker-compose -f docker-compose.prod.yml exec nginx nginx -t
+docker compose -f docker-compose.prod.yml exec nginx nginx -t
 
 # Reload nginx
-docker-compose -f docker-compose.prod.yml exec nginx nginx -s reload
+docker compose -f docker-compose.prod.yml exec nginx nginx -s reload
 ```
 
 ## Configuration Features
@@ -154,7 +154,7 @@ add_header Custom-Header "value" always;
 
 ```bash
 # Access logs
-docker-compose -f docker-compose.prod.yml logs nginx
+docker compose -f docker-compose.prod.yml logs nginx
 
 # Or directly from mounted volume
 tail -f nginx/logs/access.log
@@ -165,25 +165,25 @@ tail -f nginx/logs/error.log
 
 ```bash
 # Nginx status
-docker-compose -f docker-compose.prod.yml exec nginx nginx -v
+docker compose -f docker-compose.prod.yml exec nginx nginx -v
 
 # Test configuration
-docker-compose -f docker-compose.prod.yml exec nginx nginx -t
+docker compose -f docker-compose.prod.yml exec nginx nginx -t
 
 # Active connections
-docker-compose -f docker-compose.prod.yml exec nginx ps aux
+docker compose -f docker-compose.prod.yml exec nginx ps aux
 ```
 
 ## Troubleshooting
 
 ### 502 Bad Gateway
-- Check if backend is running: `docker-compose -f docker-compose.prod.yml ps backend`
-- Check backend logs: `docker-compose -f docker-compose.prod.yml logs backend`
+- Check if backend is running: `docker compose -f docker-compose.prod.yml ps backend`
+- Check backend logs: `docker compose -f docker-compose.prod.yml logs backend`
 - Verify upstream configuration in nginx.conf
 
 ### 413 Request Entity Too Large
 - Increase `client_max_body_size` in nginx configuration
-- Restart nginx: `docker-compose -f docker-compose.prod.yml restart nginx`
+- Restart nginx: `docker compose -f docker-compose.prod.yml restart nginx`
 
 ### SSL Certificate Errors
 - Verify certificate paths are correct

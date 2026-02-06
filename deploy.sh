@@ -83,11 +83,11 @@ pull_changes() {
 # Build and start services
 deploy_services() {
     print_info "Building Docker images..."
-    docker-compose -f docker-compose.prod.yml build
+    docker compose -f docker-compose.prod.yml build
     print_success "Images built"
 
     print_info "Starting services..."
-    docker-compose -f docker-compose.prod.yml up -d
+    docker compose -f docker-compose.prod.yml up -d
     print_success "Services started"
 }
 
@@ -100,7 +100,7 @@ wait_for_db() {
     attempt=0
     
     while [ $attempt -lt $max_attempts ]; do
-        if docker-compose -f docker-compose.prod.yml exec -T postgres pg_isready -U postgres > /dev/null 2>&1; then
+        if docker compose -f docker-compose.prod.yml exec -T postgres pg_isready -U postgres > /dev/null 2>&1; then
             print_success "Database is ready"
             return 0
         fi
@@ -116,27 +116,27 @@ wait_for_db() {
 # Run database migrations
 run_migrations() {
     print_info "Running database migrations..."
-    docker-compose -f docker-compose.prod.yml exec -T backend npx prisma migrate deploy
+    docker compose -f docker-compose.prod.yml exec -T backend npx prisma migrate deploy
     print_success "Migrations completed"
 }
 
 # Seed superadmin
 seed_superadmin() {
     print_info "Seeding superadmin account..."
-    docker-compose -f docker-compose.prod.yml exec -T backend npx prisma db seed || print_info "Superadmin already exists or seeding skipped"
+    docker compose -f docker-compose.prod.yml exec -T backend npx prisma db seed || print_info "Superadmin already exists or seeding skipped"
     print_success "Superadmin seeding completed"
 }
 
 # Show service status
 show_status() {
     print_header "Service Status"
-    docker-compose -f docker-compose.prod.yml ps
+    docker compose -f docker-compose.prod.yml ps
 }
 
 # Show logs
 show_logs() {
     print_header "Recent Logs"
-    docker-compose -f docker-compose.prod.yml logs --tail=50
+    docker compose -f docker-compose.prod.yml logs --tail=50
 }
 
 # Main deployment flow
@@ -171,8 +171,8 @@ main() {
     print_info "3. Login with superadmin credentials from .env file"
     print_info "4. Change superadmin password immediately"
     print_info ""
-    print_info "To view logs: docker-compose -f docker-compose.prod.yml logs -f"
-    print_info "To stop services: docker-compose -f docker-compose.prod.yml down"
+    print_info "To view logs: docker compose -f docker-compose.prod.yml logs -f"
+    print_info "To stop services: docker compose -f docker-compose.prod.yml down"
 }
 
 # Run main function

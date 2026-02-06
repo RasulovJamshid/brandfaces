@@ -91,11 +91,11 @@ function Pull-Changes {
 # Build and start services
 function Deploy-Services {
     Print-Info "Building Docker images..."
-    docker-compose -f docker-compose.prod.yml build
+    docker compose -f docker-compose.prod.yml build
     Print-Success "Images built"
 
     Print-Info "Starting services..."
-    docker-compose -f docker-compose.prod.yml up -d
+    docker compose -f docker-compose.prod.yml up -d
     Print-Success "Services started"
 }
 
@@ -109,7 +109,7 @@ function Wait-ForDatabase {
     
     while ($attempt -lt $maxAttempts) {
         try {
-            $result = docker-compose -f docker-compose.prod.yml exec -T postgres pg_isready -U postgres 2>&1
+            $result = docker compose -f docker-compose.prod.yml exec -T postgres pg_isready -U postgres 2>&1
             if ($LASTEXITCODE -eq 0) {
                 Print-Success "Database is ready"
                 return $true
@@ -130,7 +130,7 @@ function Wait-ForDatabase {
 # Run database migrations
 function Run-Migrations {
     Print-Info "Running database migrations..."
-    docker-compose -f docker-compose.prod.yml exec -T backend npx prisma migrate deploy
+    docker compose -f docker-compose.prod.yml exec -T backend npx prisma migrate deploy
     Print-Success "Migrations completed"
 }
 
@@ -138,7 +138,7 @@ function Run-Migrations {
 function Seed-Superadmin {
     Print-Info "Seeding superadmin account..."
     try {
-        docker-compose -f docker-compose.prod.yml exec -T backend npx prisma db seed
+        docker compose -f docker-compose.prod.yml exec -T backend npx prisma db seed
         Print-Success "Superadmin seeding completed"
     }
     catch {
@@ -149,7 +149,7 @@ function Seed-Superadmin {
 # Show service status
 function Show-Status {
     Print-Header "Service Status"
-    docker-compose -f docker-compose.prod.yml ps
+    docker compose -f docker-compose.prod.yml ps
 }
 
 # Main deployment flow
@@ -190,8 +190,8 @@ function Main {
     Print-Info "3. Login with superadmin credentials from .env file"
     Print-Info "4. Change superadmin password immediately"
     Print-Info ""
-    Print-Info "To view logs: docker-compose -f docker-compose.prod.yml logs -f"
-    Print-Info "To stop services: docker-compose -f docker-compose.prod.yml down"
+    Print-Info "To view logs: docker compose -f docker-compose.prod.yml logs -f"
+    Print-Info "To stop services: docker compose -f docker-compose.prod.yml down"
 }
 
 # Run main function

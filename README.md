@@ -59,7 +59,7 @@ NODE_ENV=development
 Build and start all services (Database, Backend, Frontend):
 
 ```bash
-docker-compose up -d --build
+docker compose up -d --build
 ```
 
 - **Backend** will be available at `http://localhost:3000`
@@ -81,13 +81,13 @@ docker logs -f casting_backend
 ### 4. Stopping the Application
 To stop all services:
 ```bash
-docker-compose down
+docker compose down
 ```
 
 ### 5. Managing Data
 The database data is persisted in a Docker volume `postgres_data`. To reset the database completely:
 ```bash
-docker-compose down -v
+docker compose down -v
 ```
 
 ## Production Deployment
@@ -115,11 +115,11 @@ cp backend/.env.example backend/.env
 # 2. Update domain names in nginx/conf.d/default.conf
 
 # 3. Deploy
-docker-compose -f docker-compose.prod.yml up -d --build
+docker compose -f docker-compose.prod.yml up -d --build
 
 # 4. Run migrations and seed
-docker-compose -f docker-compose.prod.yml exec backend npx prisma migrate deploy
-docker-compose -f docker-compose.prod.yml exec backend npx prisma db seed
+docker compose -f docker-compose.prod.yml exec backend npx prisma migrate deploy
+docker compose -f docker-compose.prod.yml exec backend npx prisma db seed
 
 # 5. Configure SSL (see PRODUCTION_DEPLOYMENT.md)
 ```
@@ -142,7 +142,7 @@ If you prefer to run locally without Docker for the apps:
    DATABASE_URL="postgresql://postgres:postgres@localhost:5432/casting_db?schema=public"
    ```
 
-2. **Database**: Use `docker-compose up -d postgres`.
+2. **Database**: Use `docker compose up -d postgres`.
 
 3. **Backend**:
    ```bash
@@ -181,7 +181,7 @@ docker exec -it casting_backend npx prisma db seed
 
 **Production:**
 ```bash
-docker-compose -f docker-compose.prod.yml exec backend npx prisma db seed
+docker compose -f docker-compose.prod.yml exec backend npx prisma db seed
 ```
 
 **Local (non-Docker):**
