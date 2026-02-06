@@ -38,7 +38,7 @@ export class BotService implements OnModuleInit {
             await this.currentBot.telegram.setMyCommands([
                 {
                     command: 'start',
-                    description: 'Start registration in Casting Bot',
+                    description: 'Start bot / Botni ishga tushirish / Запустить бота',
                 },
             ]);
             this.logger.log('Bot commands registered with Telegram');

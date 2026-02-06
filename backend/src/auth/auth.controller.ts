@@ -1,4 +1,4 @@
-import { Controller, Post, Body, UnauthorizedException, Get, Query, Param, ParseIntPipe } from '@nestjs/common';
+import { Controller, Post, Body, UnauthorizedException, Get, Query, Param, ParseIntPipe, Req } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { LinkTelegramDto } from './dto/link-telegram.dto';
 import { RequestResetDto } from './dto/request-reset.dto';
@@ -15,6 +15,22 @@ export class AuthController {
             throw new UnauthorizedException();
         }
         return this.authService.login(user);
+    }
+
+    // Get current admin profile from JWT token
+    @Get('me')
+    async me(@Req() req: any) {
+        const authHeader: string | undefined = req.headers?.authorization;
+        if (!authHeader || !authHeader.startsWith('Bearer ')) {
+            throw new UnauthorizedException();
+        }
+
+        const token = authHeader.slice('Bearer '.length).trim();
+        if (!token) {
+            throw new UnauthorizedException();
+        }
+
+        return this.authService.getCurrentAdminFromToken(token);
     }
 
     // Generate verification code for linking Telegram

@@ -199,7 +199,7 @@ export class RegistrationScene {
         }
 
         if (msg.document) {
-            await ctx.reply(t(lang, 'sendPhotoOrDone') + ' (Please send as "Photo" with compression, not "File")');
+            await ctx.reply(t(lang, 'sendPhotoAsPhoto'));
             return;
         }
 

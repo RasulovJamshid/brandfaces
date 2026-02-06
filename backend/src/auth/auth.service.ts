@@ -29,6 +29,35 @@ export class AuthService {
         };
     }
 
+    // Get current admin profile from JWT access token
+    async getCurrentAdminFromToken(token: string) {
+        try {
+            const payload = this.jwtService.verify(token) as { sub: number; username: string };
+
+            const admin = await this.prisma.admin.findUnique({
+                where: { id: payload.sub },
+                select: {
+                    id: true,
+                    email: true,
+                    name: true,
+                    role: true,
+                    isActive: true,
+                    telegramId: true,
+                    telegramUsername: true,
+                    createdAt: true,
+                },
+            });
+
+            if (!admin) {
+                throw new UnauthorizedException('Admin not found');
+            }
+
+            return admin;
+        } catch (e) {
+            throw new UnauthorizedException();
+        }
+    }
+
     // Generate verification code for linking Telegram account
     async generateVerificationCode(adminId: number): Promise<string> {
         const code = randomBytes(3).toString('hex').toUpperCase(); // 6-character code

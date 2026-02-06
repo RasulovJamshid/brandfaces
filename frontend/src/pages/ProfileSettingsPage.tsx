@@ -25,17 +25,15 @@ export default function ProfileSettingsPage() {
     const [copied, setCopied] = useState(false);
     const queryClient = useQueryClient();
 
-    // Get current admin info (you'll need to add this endpoint or get from token)
+    // Get current admin info from backend using JWT (/auth/me)
     const { data: adminData } = useQuery({
         queryKey: ['currentAdmin'],
         queryFn: async () => {
-            // Decode JWT to get admin ID or add a /auth/me endpoint
             const token = localStorage.getItem('token');
             if (!token) throw new Error('Not authenticated');
-            
-            // For now, get from admin list (you should add /auth/me endpoint)
-            const res = await api.get('/admin');
-            return res.data[0]; // Temporary - should be current user
+
+            const res = await api.get('/auth/me');
+            return res.data;
         },
     });
 
