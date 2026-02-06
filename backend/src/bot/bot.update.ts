@@ -60,4 +60,17 @@ export class BotUpdate {
     async onStartRegistration(@Ctx() ctx: BotContext) {
         await ctx.scene.enter('registration');
     }
+
+    @Command('linkaccount')
+    async onLinkAccount(@Ctx() ctx: BotContext) {
+        const lang: 'uz' | 'ru' | 'en' = ctx.session.language || 'en';
+
+        if (lang === 'uz') {
+            await ctx.reply('Iltimos, boshqaruv panelidan 6 raqamli tasdiqlash kodini kiriting:');
+        } else if (lang === 'ru') {
+            await ctx.reply('Пожалуйста, введите 6-значный код подтверждения из панели управления:');
+        } else {
+            await ctx.reply('Please enter your 6-character verification code from the dashboard:');
+        }
+    }
 }

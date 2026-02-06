@@ -286,10 +286,13 @@ export class RegistrationScene {
             return ctx.scene.leave();
         }
 
+        // Localize gender label for summary
+        const genderLabel = d.gender === 'MALE' ? t(lang, 'male') : t(lang, 'female');
+
         const summary = t(lang, 'summary', {
             fullName: d.fullName,
             age: d.age,
-            gender: d.gender,
+            gender: genderLabel,
             city: d.city,
             phone: d.phone,
             price: d.price,
