@@ -39,7 +39,7 @@ import { CitiesModule } from './cities/cities.module';
     PrismaModule,
     UsersModule,
     FilesModule,
-    // BotModule, // Disabled along with TelegrafModule
+    BotModule,
     AuthModule,
     AdminModule,
     CitiesModule,
