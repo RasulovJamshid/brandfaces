@@ -85,7 +85,7 @@ export class BotUpdate {
             return;
         }
 
-        const lang: 'uz' | 'ru' | 'en' = ctx.session.language;
+        const lang: 'uz' | 'ru' | 'en' = (ctx.session.language ?? 'en');
         const telegramId = String(ctx.from?.id ?? '');
         const telegramUsername = (ctx.from as any)?.username as string | undefined;
 
