@@ -152,16 +152,29 @@ export class RegistrationScene {
         const photos = ctx.scene.session.userData.photos ?? []; // Ensure array
         ctx.scene.session.userData.photos = photos;
 
-        // Check for "Done" in all languages
-        const doneButtons = ['Done', 'Готово', 'Tayyor'];
-        if ('text' in msg && doneButtons.includes(msg.text)) {
-            if (photos.length < 2) {
-                return ctx.reply(t(lang, 'photosMin', { count: photos.length }));
+        console.log('Photo step - message type:', msg);
+
+        // Check for "Done" in all languages - MUST BE FIRST
+        if ('text' in msg) {
+            const doneButtons = ['Done', 'Готово', 'Tayyor'];
+            console.log('Received text:', msg.text, 'Checking against:', doneButtons);
+            
+            if (doneButtons.includes(msg.text)) {
+                console.log('Done button pressed, photos count:', photos.length);
+                if (photos.length < 2) {
+                    return ctx.reply(t(lang, 'photosMin', { count: photos.length }));
+                }
+                console.log('Moving to next step (phone)');
+                await ctx.reply(t(lang, 'photosSaved'), Markup.keyboard([
+                    Markup.button.contactRequest(t(lang, 'sendContact'))
+                ]).oneTime().resize());
+                ctx.wizard.next();
+                return;
+            } else {
+                // User sent text but not "Done"
+                await ctx.reply(t(lang, 'sendPhotoOrDone'));
+                return;
             }
-            await ctx.reply(t(lang, 'photosSaved'), Markup.keyboard([
-                Markup.button.contactRequest(t(lang, 'sendContact'))
-            ]).oneTime().resize());
-            return ctx.wizard.next();
         }
 
         if ('photo' in msg) {
@@ -178,8 +191,6 @@ export class RegistrationScene {
             ctx.scene.session.userData.photos = photos;
 
             await ctx.reply(t(lang, 'photoReceived', { count: photos.length }));
-        } else {
-            await ctx.reply(t(lang, 'sendPhotoOrDone'));
         }
     }
 
