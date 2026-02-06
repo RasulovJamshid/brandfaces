@@ -5,6 +5,7 @@ import { AuthService } from '../auth/auth.service';
 interface SessionData extends Scenes.SceneSession {
     language?: 'uz' | 'ru' | 'en';
     linkAccountPending?: boolean;
+    resetPasswordPending?: boolean;
 }
 
 interface BotContext extends Scenes.SceneContext {
@@ -121,6 +122,100 @@ export class BotUpdate {
             }
 
             await ctx.reply(reply);
+        }
+    }
+
+    @Command('resetpassword')
+    async onResetPassword(@Ctx() ctx: BotContext) {
+        const lang: 'uz' | 'ru' | 'en' = (ctx.session.language ?? 'en');
+        ctx.session.resetPasswordPending = true;
+
+        if (lang === 'uz') {
+            await ctx.reply('Iltimos, administrator email manzilingizni kiriting:');
+        } else if (lang === 'ru') {
+            await ctx.reply('Пожалуйста, введите ваш email администратора:');
+        } else {
+            await ctx.reply('Please enter your admin email address:');
+        }
+    }
+
+    @Hears(/^[^\s@]+@[^\s@]+\.[^\s@]+$/)
+    async onResetPasswordEmail(@Ctx() ctx: BotContext, @Message('text') email: string) {
+        if (!ctx.session.resetPasswordPending) {
+            return;
+        }
+
+        const lang: 'uz' | 'ru' | 'en' = (ctx.session.language ?? 'en');
+        const telegramId = String(ctx.from?.id ?? '');
+
+        if (!telegramId) {
+            if (lang === 'uz') await ctx.reply('❌ Telegram ID topilmadi. Iltimos, qaytadan urinib ko\'ring.');
+            else if (lang === 'ru') await ctx.reply('❌ Не удалось получить Telegram ID. Пожалуйста, попробуйте снова.');
+            else await ctx.reply('❌ Could not get your Telegram ID. Please try again.');
+            return;
+        }
+
+        try {
+            const token = await this.authService.requestPasswordReset(email.trim(), telegramId);
+            ctx.session.resetPasswordPending = false;
+
+            const baseUrl = process.env.FRONTEND_URL || 'http://localhost:5173';
+            const resetUrl = `${baseUrl}/reset-password?token=${token}`;
+
+            if (lang === 'uz') {
+                await ctx.reply(
+                    '✅ Parolni tiklash havolasi yuborildi!\n\n' +
+                    'Parolni tiklash uchun shu yerni bosing:\n' +
+                    `${resetUrl}\n\n` +
+                    '⏰ Bu havola 15 daqiqadan keyin amal qilmaydi.'
+                );
+            } else if (lang === 'ru') {
+                await ctx.reply(
+                    '✅ Ссылка для сброса пароля отправлена!\n\n' +
+                    'Нажмите здесь, чтобы сбросить пароль:\n' +
+                    `${resetUrl}\n\n` +
+                    '⏰ Эта ссылка истечет через 15 минут.'
+                );
+            } else {
+                await ctx.reply(
+                    '✅ Password reset link sent!\n\n' +
+                    'Click here to reset your password:\n' +
+                    `${resetUrl}\n\n` +
+                    '⏰ This link will expire in 15 minutes.'
+                );
+            }
+        } catch (e: any) {
+            const errorMessage: string = e?.response?.message || e?.message || '';
+
+            if (errorMessage.includes('Too many reset requests')) {
+                if (lang === 'uz') await ctx.reply('⚠️ Juda ko\'p tiklash so\'rovlari. Iltimos, keyinroq urinib ko\'ring.');
+                else if (lang === 'ru') await ctx.reply('⚠️ Слишком много запросов на сброс. Пожалуйста, попробуйте позже.');
+                else await ctx.reply('⚠️ Too many reset requests. Please try again later.');
+                return;
+            }
+
+            if (lang === 'uz') {
+                await ctx.reply(
+                    '❌ Tiklash havolasini yuborib bo\'lmadi. Iltimos, tekshiring:\n' +
+                    '• Email manzilingiz to\'g\'ri ekanligini\n' +
+                    '• Telegram hisobingiz bog\'langanligini\n' +
+                    '• Administrator hisobingiz faol ekanligini'
+                );
+            } else if (lang === 'ru') {
+                await ctx.reply(
+                    '❌ Не удалось отправить ссылку для сброса. Убедитесь, что:\n' +
+                    '• Ваш email указан правильно\n' +
+                    '• Ваш аккаунт Telegram привязан\n' +
+                    '• Ваш аккаунт администратора активен'
+                );
+            } else {
+                await ctx.reply(
+                    '❌ Could not send reset link. Please make sure:\n' +
+                    '• Your email is correct\n' +
+                    '• Your Telegram account is linked\n' +
+                    '• Your admin account is active'
+                );
+            }
         }
     }
 }

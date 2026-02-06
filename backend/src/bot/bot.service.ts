@@ -40,6 +40,14 @@ export class BotService implements OnModuleInit {
                     command: 'start',
                     description: 'Start bot / Botni ishga tushirish / Запустить бота',
                 },
+                {
+                    command: 'linkaccount',
+                    description: 'Link admin account / Admin hisobini bog\'lash / Привязать аккаунт администратора',
+                },
+                {
+                    command: 'resetpassword',
+                    description: 'Reset admin password / Admin parolini tiklash / Сбросить пароль администратора',
+                },
             ]);
             this.logger.log('Bot commands registered with Telegram');
         } catch (error) {
