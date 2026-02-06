@@ -9,6 +9,8 @@ import {
     ParseIntPipe,
 } from '@nestjs/common';
 import { CitiesService } from './cities.service';
+import { CreateCityDto } from './dto/create-city.dto';
+import { UpdateCityDto } from './dto/update-city.dto';
 // TODO: Add authentication when auth module is available
 // import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 
@@ -61,18 +63,8 @@ export class CitiesController {
      * TODO: Add @UseGuards(JwtAuthGuard) when auth is available
      */
     @Post()
-    async create(
-        @Body()
-        body: {
-            name: string;
-            nameEn?: string;
-            nameRu?: string;
-            region?: string;
-            country?: string;
-            sortOrder?: number;
-        },
-    ) {
-        return this.citiesService.create(body);
+    async create(@Body() createCityDto: CreateCityDto) {
+        return this.citiesService.create(createCityDto);
     }
 
     /**
@@ -83,19 +75,10 @@ export class CitiesController {
     @Put(':id')
     async update(
         @Param('id', ParseIntPipe) id: number,
-        @Body()
-        body: {
-            name?: string;
-            nameEn?: string;
-            nameRu?: string;
-            region?: string;
-            country?: string;
-            isActive?: boolean;
-            sortOrder?: number;
-        },
+        @Body() updateCityDto: UpdateCityDto,
     ) {
         try {
-            return await this.citiesService.update(id, body);
+            return await this.citiesService.update(id, updateCityDto);
         } catch (error) {
             throw error;
         }
