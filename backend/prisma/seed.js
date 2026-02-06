@@ -1,6 +1,5 @@
-import 'dotenv/config';
-import { PrismaClient } from '@prisma/client';
-import * as bcrypt from 'bcrypt';
+const { PrismaClient } = require('@prisma/client');
+const bcrypt = require('bcrypt');
 
 const prisma = new PrismaClient();
 
@@ -24,18 +23,20 @@ async function main() {
         data: {
             email,
             password: hashedPassword,
-            name: 'Admin User',
+            name: 'Super Admin',
             role: 'SUPER_ADMIN',
         },
     });
 
     console.log(`Admin created: ${admin.email}`);
+    console.log(`Email: ${email}`);
     console.log(`Password: ${password}`);
+    console.log('Please change the password after first login!');
 }
 
 main()
     .catch((e) => {
-        console.error(e);
+        console.error('Error seeding database:', e);
         process.exit(1);
     })
     .finally(async () => {
