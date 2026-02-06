@@ -1,5 +1,4 @@
 import { Injectable, Logger, OnModuleInit } from '@nestjs/common';
-import { InjectBot } from 'nestjs-telegraf';
 import { Telegraf } from 'telegraf';
 import { ConfigService } from '@nestjs/config';
 
@@ -9,10 +8,16 @@ export class BotService implements OnModuleInit {
     private currentBot: Telegraf;
 
     constructor(
-        @InjectBot() private bot: Telegraf,
         private configService: ConfigService,
     ) {
-        this.currentBot = bot;
+        // Initialize bot from environment variable
+        const botToken = this.configService.get<string>('BOT_TOKEN');
+        if (botToken && botToken !== 'change_me') {
+            this.currentBot = new Telegraf(botToken);
+            this.logger.log('Bot initialized from BOT_TOKEN');
+        } else {
+            this.logger.warn('BOT_TOKEN not set or invalid. Bot features will be limited until token is updated.');
+        }
     }
 
     onModuleInit() {
