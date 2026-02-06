@@ -7,3 +7,4 @@ Dockerfile.prod
 .gitignore
 test
 .env
+prisma.config.ts
